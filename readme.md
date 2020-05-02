@@ -36,4 +36,4 @@ An example of it (notice `sites` is array of object, meaning you can define mult
 }
 ```
 
-Currently, status change is defined only by the absence of element defined by CSS selector.
+Currently, status change is defined only by the absence or presence of element/text defined by CSS selector.

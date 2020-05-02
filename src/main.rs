@@ -1,12 +1,16 @@
-use std::{error, fs, env, path};
+use std::{error, fs, path};
+use std::str::FromStr;
 
 use headless_chrome::Browser;
 
 use plan::Plan;
 
-mod plan;
-mod opts;
+use crate::rule::RuleKind;
+
 mod multipart;
+mod opts;
+mod plan;
+mod rule;
 
 fn main() -> Result<(), Box<dyn error::Error>> {
     let opts = opts::get();
@@ -20,7 +24,7 @@ fn main() -> Result<(), Box<dyn error::Error>> {
 
 fn run(plan: &Plan) -> Result<(), Box<dyn error::Error>> {
     for site in plan.sites.iter() {
-        log::info!("Checking {}", &site.description);
+        log::info!("Checking {} for {}.", &site.description, &site.rule_kind);
 
         let browser = Browser::default()?;
 
@@ -28,14 +32,12 @@ fn run(plan: &Plan) -> Result<(), Box<dyn error::Error>> {
 
         tab.navigate_to(&site.url)?;
 
-        match tab.wait_for_element(&site.selector) {
-            Ok(_) => {
-                log::info!("{}", &site.disappointing_note);
-            },
-            Err(_) => {
+        if let Ok(site_rule) = RuleKind::from_str(&site.rule_kind) {
+            if site_rule.evaluate(&site, &tab) {
                 log::info!("{}", &site.happy_note);
                 plan.mailgun.send(&site.description, &site.happy_note);
-                log::info!("Recipient notified via email");
+            } else {
+                log::info!("{}", &site.disappointing_note);
             }
         }
     }

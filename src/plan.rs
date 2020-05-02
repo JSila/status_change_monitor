@@ -8,6 +8,9 @@ pub struct Site {
     pub description: String,
     pub url: String,
     pub selector: String,
+    pub rule_kind: String,
+    #[serde(default)]
+    pub text: String,
     pub happy_note: String,
     pub disappointing_note: String,
 }
@@ -17,7 +20,7 @@ pub struct Mailgun {
     pub from: String,
     pub to: String,
     pub domain: String,
-    pub api_key: String
+    pub api_key: String,
 }
 
 impl Mailgun {
@@ -36,7 +39,9 @@ impl Mailgun {
             .send_bytes(&data.to_bytes());
 
         if response.status() != 200 {
-            println!("{:?}", response);
+            log::error!("Cannot send to {}: {:?}", self.to, response);
+        } else {
+            log::info!("Sent notification to {}", self.to);
         }
     }
 }
@@ -46,8 +51,7 @@ pub struct Plan {
     pub sites: Vec<Site>,
     pub mailgun: Mailgun,
 
-    #[serde(skip_serializing)]
-    #[serde(skip_deserializing)]
+    #[serde(skip)]
     filename: path::PathBuf,
 }
 

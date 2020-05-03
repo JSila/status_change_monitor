@@ -7,7 +7,6 @@ use plan::Plan;
 
 use crate::rule::RuleKind;
 
-mod multipart;
 mod opts;
 mod plan;
 mod rule;

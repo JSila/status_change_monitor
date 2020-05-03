@@ -1,7 +1,8 @@
 use std::{error, fs, path};
+
 use serde::{Deserialize, Serialize};
 
-use crate::multipart::MultiPart;
+use formdata::{self, FormData};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Site {
@@ -27,16 +28,26 @@ impl Mailgun {
     pub fn send(&self, subject: &str, text: &str) {
         let url = format!("https://api.mailgun.net/v3/{}/messages", self.domain);
 
-        let mut data = MultiPart::new();
-        data.add_string("from", &self.from);
-        data.add_string("to", &self.to);
-        data.add_string("subject", subject);
-        data.add_string("html", text);
+        let form_data = FormData {
+            fields: vec![
+                ("from".to_string(), self.from.to_string()),
+                ("to".to_string(), self.to.to_string()),
+                ("subject".to_string(), subject.to_string()),
+                ("html".to_string(), text.to_string()),
+            ],
+            files: vec![]
+        };
+
+        let boundary = formdata::generate_boundary();
+
+        let mut data: Vec<u8> = vec![];
+
+        formdata::write_formdata(&mut data, &boundary, &form_data).unwrap();
 
         let response = ureq::post(&url)
             .auth("api", &self.api_key)
-            .set("Content-Type", &format!("multipart/form-data; boundary={}", data.boundary))
-            .send_bytes(&data.to_bytes());
+            .set("Content-Type", &format!("multipart/form-data; boundary={}", String::from_utf8_lossy(&boundary)))
+            .send_bytes(&data);
 
         if response.status() != 200 {
             log::error!("Cannot send to {}: {:?}", self.to, response);

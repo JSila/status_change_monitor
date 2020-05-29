@@ -1,20 +1,19 @@
-use std::{error, fs, path};
+use std::{error};
 use std::str::FromStr;
 
 use headless_chrome::Browser;
 
-use plan::Plan;
-
-use crate::rule::RuleKind;
-
-mod opts;
 mod plan;
 mod rule;
+mod util;
+
+use crate::rule::RuleKind;
+use crate::plan::{Plan};
 
 fn main() -> Result<(), Box<dyn error::Error>> {
-    let opts = opts::get();
+    let opts = util::get_opts();
 
-    set_logging(&opts.log);
+    util::init_logging(&opts.log);
 
     let plan = Plan::new(&opts.plan)?;
 
@@ -42,16 +41,4 @@ fn run(plan: &Plan) -> Result<(), Box<dyn error::Error>> {
     }
 
     Ok(())
-}
-
-fn set_logging(log: &path::PathBuf) {
-    let config = simplelog::ConfigBuilder::new()
-        .add_filter_allow_str("status_change_monitor")
-        .set_time_format_str("%F %T")
-        .set_time_to_local(true)
-        .build();
-
-    let file = fs::File::create(log).expect("Cannot create log file");
-
-    simplelog::WriteLogger::init(log::LevelFilter::Info, config, file).unwrap();
 }

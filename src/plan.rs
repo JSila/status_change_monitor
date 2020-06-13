@@ -12,6 +12,8 @@ pub struct Site {
     pub rule_kind: String,
     #[serde(default)]
     pub text: String,
+    #[serde(default)]
+    pub value: f32,
     pub happy_note: String,
     pub disappointing_note: String,
 }

@@ -23,6 +23,15 @@ pub struct Site {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+pub struct Multiple {
+    pub ids: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub status_changed: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub status_changed_date: Option<DateTime<Local>>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Mailgun {
     pub from: String,
     pub to: String,
@@ -67,6 +76,7 @@ impl Mailgun {
 pub struct Plan {
     pub sites: Vec<Site>,
     pub mailgun: Mailgun,
+    pub multiples: Vec<Multiple>,
 
     #[serde(skip)]
     filename: path::PathBuf,

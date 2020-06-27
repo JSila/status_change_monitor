@@ -22,11 +22,28 @@ fn main() -> Result<(), Box<dyn error::Error>> {
 }
 
 fn run(plan: &mut Plan) -> Result<(), Box<dyn error::Error>> {
+
+    let ids_in_multiples: Vec<String> = plan.multiples.iter()
+        .map(|m| m.ids.clone())
+        .flatten()
+        .collect();
+
     for site in plan.sites.iter_mut() {
         log::info!("Checking {} for {}.", &site.description, &site.rule_kind);
 
+        let in_multiples = ids_in_multiples.contains(&site.id);
+
+        let notify_data = NotifyData {
+            description: site.description.to_string(),
+            happy_note: site.happy_note.to_string(),
+            disappointing_note: site.disappointing_note.to_string(),
+        };
+
+        // do not check again if the system found out in previous execution the site had changed status
         if site.status_changed.unwrap_or(false) {
-            notify(true, site, &plan.mailgun);
+            if !in_multiples {
+                notify(true, &notify_data, &plan.mailgun);
+            }
             continue
         }
 
@@ -42,17 +59,68 @@ fn run(plan: &mut Plan) -> Result<(), Box<dyn error::Error>> {
                 site.status_changed = Option::from(true);
                 site.status_changed_date = Option::from(Local::now());
             }
-            notify(changed, site, &plan.mailgun);
+            if !in_multiples {
+                notify(changed, &notify_data, &plan.mailgun);
+            }
         }
     }
+
+    for multiple in plan.multiples.iter_mut() {
+        let changed = plan.sites.iter()
+            .filter(|s| multiple.ids.contains(&s.id))
+            .all(|s| s.status_changed.unwrap_or(false));
+
+        if changed {
+            multiple.status_changed = Option::from(true);
+            multiple.status_changed_date = Option::from(Local::now());
+        }
+
+        let description = plan.sites.iter()
+            .filter(|s| multiple.ids.contains(&s.id))
+            .map(|s| s.description.to_string())
+            .collect::<Vec<String>>()
+            .join(", ");
+
+        let happy_note = plan.sites.iter()
+            .filter(|s| multiple.ids.contains(&s.id))
+            .map(|s| s.happy_note.to_string())
+            .collect::<Vec<String>>()
+            .join("\n");
+
+        let disappointing_note = plan.sites.iter()
+            .filter(|s| multiple.ids.contains(&s.id))
+            .map(|s| {
+                if s.status_changed.unwrap_or(false) {
+                    s.happy_note.to_string()
+                } else {
+                    s.disappointing_note.to_string()
+                }
+            })
+            .collect::<Vec<String>>()
+            .join("\n");
+
+        let notify_data = NotifyData {
+            description,
+            happy_note,
+            disappointing_note,
+        };
+        notify(changed, &notify_data, &plan.mailgun);
+    }
+
     plan.save()
 }
 
-fn notify(changed: bool, site: &plan::Site, mailgun: &plan::Mailgun) {
+fn notify(changed: bool, data: &NotifyData, mailgun: &plan::Mailgun) {
     if changed {
-        log::info!("{}", site.happy_note);
-        mailgun.send(&site.description, &site.happy_note);
+        log::info!("{}", data.happy_note);
+        mailgun.send(&data.description, &data.happy_note);
     } else {
-        log::info!("{}", site.disappointing_note);
+        log::info!("{}", data.disappointing_note);
     }
+}
+
+pub struct NotifyData {
+    pub description: String,
+    pub happy_note: String,
+    pub disappointing_note: String,
 }

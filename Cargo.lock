@@ -172,6 +172,7 @@ checksum = "80094f509cf8b5ae86a4966a39b3ff66cd7e2a3e594accec3743ff3fabeab5b2"
 dependencies = [
  "num-integer",
  "num-traits",
+ "serde",
  "time 0.1.43",
 ]
 
@@ -1201,6 +1202,7 @@ checksum = "898341a519ec30272f8665dd05fb00156254310e99df3dc1e0cb096883d8656c"
 name = "status-change-monitor"
 version = "0.1.0"
 dependencies = [
+ "chrono",
  "clap",
  "formdata",
  "headless_chrome",

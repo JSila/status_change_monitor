@@ -64,9 +64,18 @@ impl RuleKind {
 
 impl Rule for PresenceOf {
     fn evaluate(&self, site: &Site, tab: &Arc<Tab>) -> bool {
+
+        if site.text.is_none() {
+            return false;
+        }
+
+        let site_text = site.text
+            .as_ref()
+            .unwrap();
+
         match tab.wait_for_element(&site.selector) {
             Ok(element) => {
-                if self.1 && get_element_text(&element) != site.text {
+                if self.1 && get_element_text(&element) != *site_text {
                     return !self.0;
                 }
             },
@@ -80,17 +89,26 @@ impl Rule for PresenceOf {
 
 impl Rule for NumberChange {
     fn evaluate(&self, site: &Site, tab: &Arc<Tab>) -> bool {
+
+        if site.value.is_none() {
+            return false;
+        }
+
+        let site_value = site.value
+            .as_ref()
+            .unwrap();
+
         match tab.wait_for_element(&site.selector) {
             Ok(element) => {
                 let actual_value = get_element_value(&element);
 
                 return match self.0.as_str() {
-                    ">"  => actual_value > site.value,
-                    ">=" => actual_value >= site.value,
-                    "<"  => actual_value < site.value,
-                    "<=" => actual_value <= site.value,
-                    "==" => actual_value == site.value,
-                    _    => actual_value == site.value
+                    ">"  => actual_value > *site_value,
+                    ">=" => actual_value >= *site_value,
+                    "<"  => actual_value < *site_value,
+                    "<=" => actual_value <= *site_value,
+                    "==" => actual_value == *site_value,
+                    _    => actual_value == *site_value
                 }
             },
             Err(_) => false

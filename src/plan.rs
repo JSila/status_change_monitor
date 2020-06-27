@@ -1,21 +1,25 @@
 use std::{error, fs, path};
-
 use serde::{Deserialize, Serialize};
-
 use formdata::{self, FormData};
+use chrono::{DateTime, Local};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Site {
+    pub id: String,
     pub description: String,
     pub url: String,
     pub selector: String,
     pub rule_kind: String,
-    #[serde(default)]
-    pub text: String,
-    #[serde(default)]
-    pub value: f32,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub text: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub value: Option<f32>,
     pub happy_note: String,
     pub disappointing_note: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub status_changed: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub status_changed_date: Option<DateTime<Local>>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -73,5 +77,11 @@ impl Plan {
         let mut plan: Plan = serde_json::from_reader(fs::File::open(filename)?)?;
         plan.filename = filename.clone();
         Ok(plan)
+    }
+
+    pub fn save(&self) -> Result<(), Box<dyn error::Error>> {
+        let file = fs::File::create(&self.filename)?;
+        serde_json::to_writer_pretty(&file, self)?;
+        Ok(())
     }
 }

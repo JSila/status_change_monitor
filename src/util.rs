@@ -1,6 +1,7 @@
 use std::{path,fs::File};
 
 use clap::Clap;
+use simplelog::{WriteLogger, LevelFilter};
 
 #[derive(Clap, Debug)]
 #[clap(version = "1.0", author = "Jernej S.")]
@@ -15,12 +16,12 @@ pub fn get_opts() -> Opts {
 
 pub fn init_logging(log: &path::PathBuf) {
     let config = simplelog::ConfigBuilder::new()
-        .add_filter_allow_str("status_change_monitor")
         .set_time_format_str("%F %T")
         .set_time_to_local(true)
         .build();
 
     let file = File::create(log).expect("Cannot create log file");
 
-    simplelog::WriteLogger::init(log::LevelFilter::Info, config, file).unwrap();
+    WriteLogger::init(LevelFilter::Info, config, file)
+        .unwrap();
 }

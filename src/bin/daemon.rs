@@ -3,12 +3,10 @@ use std::str::FromStr;
 
 use headless_chrome::Browser;
 
-mod plan;
-mod rule;
-mod util;
+use status_change_monitor::util;
+use status_change_monitor::rule::RuleKind;
+use status_change_monitor::plan::{Plan, Mailgun};
 
-use crate::rule::RuleKind;
-use crate::plan::{Plan};
 use chrono::{Local};
 
 fn main() -> Result<(), Box<dyn error::Error>> {
@@ -110,7 +108,7 @@ fn run(plan: &mut Plan) -> Result<(), Box<dyn error::Error>> {
     plan.save()
 }
 
-fn notify(changed: bool, data: &NotifyData, mailgun: &plan::Mailgun) {
+fn notify(changed: bool, data: &NotifyData, mailgun: &Mailgun) {
     if changed {
         log::info!("{}", data.happy_note);
         mailgun.send(&data.description, &data.happy_note);

@@ -1,13 +1,12 @@
-use std::{error};
+use std::error;
 use std::str::FromStr;
 
+use chrono::Local;
 use headless_chrome::Browser;
 
-use status_change_monitor::util;
+use status_change_monitor::plan::{Mailgun, Plan};
 use status_change_monitor::rule::RuleKind;
-use status_change_monitor::plan::{Plan, Mailgun};
-
-use chrono::{Local};
+use status_change_monitor::util;
 
 fn main() -> Result<(), Box<dyn error::Error>> {
     let opts = util::get_opts();

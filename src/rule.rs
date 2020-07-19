@@ -1,5 +1,6 @@
 use std::sync::Arc;
-use headless_chrome::{Tab, Element};
+
+use headless_chrome::{Element, Tab};
 use strum_macros::EnumString;
 
 use crate::plan::Site;

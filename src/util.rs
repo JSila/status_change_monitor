@@ -1,7 +1,7 @@
-use std::{path,fs::File};
+use std::{fs::File, path};
 
 use clap::Clap;
-use simplelog::{WriteLogger, LevelFilter};
+use simplelog::{LevelFilter, WriteLogger};
 
 #[derive(Clap, Debug)]
 #[clap(version = "1.0", author = "Jernej S.")]

@@ -5,4 +5,5 @@ release:
 	cargo build --release
 
 check:
+	clear
 	cargo check

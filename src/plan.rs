@@ -4,7 +4,7 @@ use chrono::{DateTime, Local};
 use formdata::{self, FormData};
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Site {
     pub id: String,
     pub description: String,
